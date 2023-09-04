@@ -12,6 +12,6 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+      '/register',//facing 419 Expired issue and I'm tired lol
     ];
 }
