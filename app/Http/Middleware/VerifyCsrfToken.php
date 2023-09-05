@@ -14,6 +14,7 @@ class VerifyCsrfToken extends Middleware
     protected $except = [
       '/register',//facing 419 Expired issue and I'm tired lol
       '/login',
-      'logout',
+      '/logout',
+      '/confirm-password',
     ];
 }
