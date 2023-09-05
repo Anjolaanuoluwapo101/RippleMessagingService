@@ -32,10 +32,10 @@ class RegisterController extends Controller
             'password' => Hash::make(request('password'))
         ]);
 
-        event(new Registered($user));
+        //event(new Registered($user));
 
         //Auth::login($user);
-          return response('Your account have been created')->header('Content-Type','text/plain');
+        return response('Your account have been created')->header('Content-Type','text/plain');
         //return redirect()->to(RouteServiceProvider::HOME);
     }
 }

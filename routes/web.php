@@ -18,9 +18,13 @@ Route::get('/', function () {
 */
 
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\LoginController;
 
+//for registration
+Route::get('/', [RegisterController::class, 'show'])->name('register'); 
+Route::post('/register', [RegisterController::class, 'handle'])->name('register');//handles registration form
 
-Route::get('/', [RegisterController::class, 'show'])->name('register');
-
-Route::post('/register', [RegisterController::class, 'handle'])->name('register');
+//for signing in...
+Route::get('/login', [LoginController::class, 'show'])->name('login');
+Route::post('/login', [LoginController::class, 'handle'])->name('login');//handles login form
 
