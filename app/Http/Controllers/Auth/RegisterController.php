@@ -40,7 +40,7 @@ class RegisterController extends Controller
       //return redirect('/')->withErrors($validator)->withInput();
       //session()->put('old',$request->all());
       //session($validator->errors()->getMessages());
-      $request->session()->put('key', 'value');
+      //$request->session()->put('key', 'value');
       return redirect()->back()->withErrors($validator->errors()->getMessages())->withInput();
     }
 

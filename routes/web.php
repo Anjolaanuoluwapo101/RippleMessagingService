@@ -24,7 +24,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 */
-;
+//test routes..
+Route::get('/test', function(Request $request){
+  $request->session()->put('key','value');
+  return view('test');
+})->name('testRoute1');
 
 //for registration
 Route::get('/', [RegisterController::class, 'show'])->name('register'); 

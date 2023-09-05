@@ -14,15 +14,26 @@
         <!-- Email -->
         <label for="email">Email</label>
         </br>
-        <input type="email" name="email" id="email" />
-
+        <input type="email" name="email" id="email" value="{{old('email')}}"/>
+        </br>
+        @error('email')
+        <span>  {{$message}}  </span>
+        @enderror
+        
         <!-- Password -->
         </br>
         <label for="password">Password</label>
         </br>
-        <input type="password" name="password" id="password" />
+        <input type="password" name="password" id="password" value="{{old('password')}}"/>
+        </br>
+        @error('password')
+        <span>  {{$message}}  </span>
+        @enderror
         
         <!-- automatic remember me set to false -->
+        </br>
+        <label for="remember">Remember Me</label>
+        </br>
         <input type="checkbox" name="remember" id="remember" />
         
         <!-- Submit button -->

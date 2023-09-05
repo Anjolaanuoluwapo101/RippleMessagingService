@@ -9,9 +9,6 @@
 </head>
 <body>
     <h1>Register</h1>
-    @php
-      echo session('key');
-    @endphp
     <form action="{{ route('register') }}" method="post">
         @csrf
         <!-- Name -->
@@ -41,7 +38,7 @@
         <input type="password" name="password" id="password"  value="{{old('password')}}"/>
         </br>
         @error('password')
-        <span>gggg  {{$message}}  </span>
+        <span> {{$message}}  </span>
         @enderror
         
         <!-- Confirm password -->
