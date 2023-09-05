@@ -16,5 +16,8 @@ class VerifyCsrfToken extends Middleware
       '/login',
       '/logout',
       '/confirm-password',
+      '/verify-email',
+      '/verify-email/request',
+      'verify-email/{id}/{hash}'
     ];
 }

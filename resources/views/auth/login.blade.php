@@ -23,7 +23,7 @@
         <input type="password" name="password" id="password" />
         
         <!-- automatic remember me set to false -->
-        <input type="hidden" name="remember" id="remember" value=false />
+        <input type="checkbox" name="remember" id="remember" />
         
         <!-- Submit button -->
         </br>
