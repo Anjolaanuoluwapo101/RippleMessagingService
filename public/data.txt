@@ -1,0 +1,1 @@
+a:2:{s:4:"name";a:1:{i:0;s:53:"The name field must not be greater than 2 characters.";}s:8:"password";a:1:{i:0;s:47:"The password field confirmation does not match.";}}
