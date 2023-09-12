@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\PasswordConfirmationController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Ripple\RippleController;
 
  
 /*
@@ -24,11 +25,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 */
-//test routes..
-Route::get('/test', function(Request $request){
-  $request->session()->put('key','value');
-  return view('test');
-})->name('testRoute1');
 
 //for registration
 Route::get('/', [RegisterController::class, 'show'])->name('register'); 
@@ -94,3 +90,12 @@ Route::get('/reset-password/{token}', function (string $token) {
 
 //
  Route::post('/reset-password', [PasswordResetController::class,'change'])->name('password.update');// //you can add the guest middleware if you want authenticated users to be redirected somewhere else..this would prevent them from changing password tho except they log out
+
+/**
+ *  Beginning of Ripple Routes 
+ * 
+ **/
+ Route::get('/form', function (){
+   return view('Ripple/testform2');
+ });
+ Route::post('/send-ripple',[RippleController::class,'create']);
