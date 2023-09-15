@@ -33,17 +33,18 @@ class RippleController extends Controller
           */
     //after basic validation
     //get some required attributes
-    //if recipient_message_id is empty...then the user is creating a post..if not he's either replying  post or replying in general
+    //if ripple_reference_id is empty...then the user is creating a post..if not he's either replying  post or replying in general
     if ($request->filled('ripple_reference_id')) {
       $rippleIsAPost = false;//this block run if the ripple sent to the backend is a reply/comment/reply of reply /reply to a comment...as long as it's not a post(that's not under any other ripple)
-      $recipientMessage = Ripple::where('id', $request->input('ripple_reference_id'))->first(); //get the message being 
+      $recipientMessage = Ripple::where('ripple_id', $request->input('ripple_reference_id'))->first(); //get the message being 
       $rippleNestLevel = $recipientMessage->ripple_nest_level;
       //update the tagged list
-      $arrayOfRipplersTagged = $recipientMessage->ripplers_tagged; //returns an array
+      $arrayOfRipplersTagged = unserialize($recipientMessage->ripplers_tagged); //returns an array
       $arrayOfRipplersTagged[] = $request->input('rippler_reference_id');
-      $jsonArrayOfRipplersTagged = json_encode($arrayOfRipplersTagged);
-    }else{
-      //this else block runs if the ripple sent to the backend is a post
+      $jsonArrayOfRipplersTagged = serialize($arrayOfRipplersTagged);
+    }
+    //this else block runs if the ripple sent to the backend is a post
+    else{
       $rippleIsAPost = true;
     }
     
@@ -60,7 +61,7 @@ class RippleController extends Controller
         ]);
      //file path is saved 
       if(!empty($pathToStoredFiles)){
-        $newMessage->ripple_attachments = json_encode($pathToStoredFiles);
+        $newMessage->ripple_attachments = serialize($pathToStoredFiles);
       }
       //the next if block only runs for non-post ripples
       else if(!empty($arrayOfRipplersTagged)){
@@ -75,10 +76,8 @@ class RippleController extends Controller
       return "Something Went Wrong".$e->getMessage();
     }
   }
-  /**
-  * 
-  * This method stores files
-  */
+  
+  // This method stores files
   public function uploadFiles(Request $request, Ripple $ripple):array {
     //a variable that stores all uploaded files
     $pathToStoredFiles = [];
@@ -113,9 +112,7 @@ class RippleController extends Controller
     return $pathToStoredFiles;
   }
 
-  /**
-  * store MessageBody
-  */
+  //store MessageBody
   public function storeMessageBody(Request $request) {
     //laravel storage function not working so I'm using the normo PHP function
     try {
@@ -128,7 +125,9 @@ class RippleController extends Controller
       return false;
     }
   }
-
+  
+  //this loads a ripple along with it 
+  public function loadRipple
   /**
   * Show the form for editing the specified resource.
   */

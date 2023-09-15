@@ -8,8 +8,11 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\PasswordConfirmationController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
-use App\Http\Controllers\Ripple\RippleController;
 
+//for Ripple
+use App\Http\Controllers\Ripple\RippleController;
+use App\Http\Resources\RippleResource;
+use App\Models\Ripple;
  
 /*
 |--------------------------------------------------------------------------
@@ -21,15 +24,55 @@ use App\Http\Controllers\Ripple\RippleController;
 | be assigned to the "web" middleware group. Make something great!
 |
 
-Route::get('/', function () {
-    return view('welcome');
-});
+/**
+ *  BEGINNING of Ripple Routes 
+ * 
+ **/
+ //INPUT ROUTES
+//Uaer authentication Input based routes
+use Illuminate\Support\Facades\Auth;
+/*
+use Illuminate\Support\Facades\Hash;
+$hashedPassword = Hash::make("", ['dontHash' => true]);
+echo "hashed password = ".$hashedPassword;
 */
+Route::get('/ripplerLogin', function (){
+  if(Auth::guard('rippler')->once([
+    'rippler_email' => 'posterman@gmail.com',
+    'password' => "",
+    ])){
+      return response('LoggedIn');
+    }else{
+      echo "no";
+}});
+
+//Ripple creation Input based routes
+ Route::get('/form', function (){
+   return view('Ripple/testform2');
+ });
+ //this sends a ripple(message) to the backend
+ Route::post('/send-ripple',[RippleController::class,'create']);
+ 
+ //OUTPUT ROUTES 
+ //to get a ripple along with it related non quoted ripple replies
+ Route::get('/get-related-ripples/{ripple_id}/{isQuote}',function(int $ripple_id,string $isQuote){
+   return new RippleResource(Ripple::findOrFail($ripple_id));
+ });
+ 
+ //to search for a ripple
+ Route::get('/search-keyword/{keyword}', function (string $keyword){
+   $keywords = array();
+   $keywords[] = $keyword;
+   $ripple = new Ripple;
+   return Ripple::searchForRelatedRipples($keywords);
+ });
+
+
+
 
 //for registration
 Route::get('/', [RegisterController::class, 'show'])->name('register'); 
 Route::post('/register', [RegisterController::class, 'handle'])->name('register');//handles registration form
-
 
 
 //for email verification
@@ -90,12 +133,3 @@ Route::get('/reset-password/{token}', function (string $token) {
 
 //
  Route::post('/reset-password', [PasswordResetController::class,'change'])->name('password.update');// //you can add the guest middleware if you want authenticated users to be redirected somewhere else..this would prevent them from changing password tho except they log out
-
-/**
- *  Beginning of Ripple Routes 
- * 
- **/
- Route::get('/form', function (){
-   return view('Ripple/testform2');
- });
- Route::post('/send-ripple',[RippleController::class,'create']);

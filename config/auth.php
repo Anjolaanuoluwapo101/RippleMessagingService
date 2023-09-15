@@ -40,6 +40,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'rippler' => [
+            'driver' => 'session',
+            'provider' => 'ripplerInformation',
+        ],
     ],
 
     /*
@@ -63,6 +67,10 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
+        ],
+        'ripplerInformation' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\RipplerInformation::class,
         ],
 
         // 'users' => [

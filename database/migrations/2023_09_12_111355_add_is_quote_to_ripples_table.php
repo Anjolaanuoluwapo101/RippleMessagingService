@@ -8,14 +8,14 @@ return new Class extends Migration
     public function up()
     {
         Schema::table('ripples', function (Blueprint $table) {
-            $table->integer('rippler_reference_id')->after('ripple_recipient_id')->default(0);
+            $table->integer('isQuote')->default(0);
         });
     }
 
     public function down()
     {
         Schema::table('ripples', function (Blueprint $table) {
-            $table->dropColumn('rippler_reference_id');
+            $table->dropColumn('isQuote');
         });
     }
 }
