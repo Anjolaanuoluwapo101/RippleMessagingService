@@ -19,7 +19,7 @@ class RippleResource extends JsonResource
   public function toArray(Request $request): array
   {
     return [
-      'rippler_name' => RipplerInformation::find($this->rippler_id)->first()->rippler_name,
+      'rippler_name' => User::find($this->rippler_id)->first()->name,
       // Other ripple attributes...
       //we pass a relatedRipples() as a function instead of as a member variable...this is to because we want paginateFilteredRelatedRipples function to 
       //recieve a query result and not a collection...paginateFilteredRelatedRipples function using cursorPaginate which isnt a collection method

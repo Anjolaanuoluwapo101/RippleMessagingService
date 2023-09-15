@@ -10,9 +10,11 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 
 //for Ripple
-use App\Http\Controllers\Ripple\RippleController;
+use App\Http\Controllers\Ripple\RipplerController;
+use App\Http\Controllers\Ripple\LogicController;
 use App\Http\Resources\RippleResource;
 use App\Models\Ripple;
+use Illuminate\Support\Facades\Auth;
  
 /*
 |--------------------------------------------------------------------------
@@ -30,7 +32,29 @@ use App\Models\Ripple;
  **/
  //INPUT ROUTES
 //Uaer authentication Input based routes
-use Illuminate\Support\Facades\Auth;
+/*
+//registration routes
+Route::get('/register-email', function () {
+    return view('ripple.register');
+})->name('ripple_register');
+Route::post('/register-email', [RegisterRipplerController::class,'create']);
+
+//verify account
+Route::get('verify-rippler-account/{rippler_id}',[RegisterRipplerController::class,'verifyAccount']);
+
+//login routes
+Route::get('/login', function () {
+  return view('ripple.login');
+})->name('ripple_login');
+//didn't want ro create anothe controller for logik functionality so....
+Route::post('/login', [RegisterRipplerController::class,'login']);
+
+
+//neutral page/landing page
+Route::get('/',function(){
+  return view('ripple.welcome');
+});
+*/
 /*
 use Illuminate\Support\Facades\Hash;
 $hashedPassword = Hash::make("", ['dontHash' => true]);
@@ -67,11 +91,15 @@ Route::get('/ripplerLogin', function (){
    return Ripple::searchForRelatedRipples($keywords);
  });
 
-
+//ripple dashboard
+Route::get('/dashboard',function(){
+  return view('ripple.dashboard');
+});
+Route::post('add-url',[LogicController::class,'addURL']);
 
 
 //for registration
-Route::get('/', [RegisterController::class, 'show'])->name('register'); 
+Route::get('/', [RegisterController::class, 'show'])->name('ripple_register'); 
 Route::post('/register', [RegisterController::class, 'handle'])->name('register');//handles registration form
 
 
@@ -95,7 +123,7 @@ Route::post('/verify-email/request', [EmailVerificationController::class, 'reque
     
 
 //for signing in...
-Route::get('/login', [LoginController::class, 'show'])->name('login');
+Route::get('/login', [LoginController::class, 'show'])->name('ripple_login');
 Route::post('/login', [LoginController::class, 'handle'])->name('login');//handles login form
 
 //for logout
@@ -110,6 +138,7 @@ Route::post('/logout', [LogoutController::class, 'handle'])->name('logout');//ha
  * you're trying to prevent unauthorized access towards this page that contains the functionality
  *E.g Before a user can delete his account,he has to type in his password then he can access the page were he/she goes on to delete the account
  **/
+ 
  Route::get('/confirm-password', [PasswordConfirmationController::class, 'show'])
     ->middleware('auth')
     ->name('password.confirm');

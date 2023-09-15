@@ -58,7 +58,7 @@ class RegisterController extends Controller
       'confirm_password'=>'Password doesn\'t match',
       ]);*/
     //Auth::login($user);
-    return response('Your account have been created')->header('Content-Type', 'text/plain');
+    return response('Your account have been created,please check your email for verification link')->header('Content-Type', 'text/plain');
     //return redirect()->to(RouteServiceProvider::HOME);
   }
 }
