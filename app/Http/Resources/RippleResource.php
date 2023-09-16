@@ -5,7 +5,6 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
-use App\Models\RipplerInformation;
 
 class RippleResource extends JsonResource
 {
@@ -14,18 +13,12 @@ class RippleResource extends JsonResource
   *
   * @return array<string, mixed>
   */
-  public static $wrap = 'rippleData';
+  public static $wrap = 'relatedRipples';
   
   public function toArray(Request $request): array
   {
     return [
-      'rippler_name' => User::find($this->rippler_id)->first()->name,
-      // Other ripple attributes...
-      //we pass a relatedRipples() as a function instead of as a member variable...this is to because we want paginateFilteredRelatedRipples function to 
-      //recieve a query result and not a collection...paginateFilteredRelatedRipples function using cursorPaginate which isnt a collection method
-      //'related_ripples' => $this->paginateFilteredRelatedRipples($this->relatedRipples()),
-      //found another easier way...just paginate the relationship itself in the Ripple model
-      'related_ripples' => $this->relatedNonQuotedRipples(),
+      $this->relatedNonQuotedRipples(),//calling the relationship loke a function gets an array and not a collection object
     ];
   }
   

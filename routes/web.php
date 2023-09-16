@@ -10,11 +10,10 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 
 //for Ripple
-use App\Http\Controllers\Ripple\RipplerController;
+use App\Http\Controllers\Ripple\RippleController;
 use App\Http\Controllers\Ripple\LogicController;
-use App\Http\Resources\RippleResource;
 use App\Models\Ripple;
-use Illuminate\Support\Facades\Auth;
+
  
 /*
 |--------------------------------------------------------------------------
@@ -30,76 +29,34 @@ use Illuminate\Support\Facades\Auth;
  *  BEGINNING of Ripple Routes 
  * 
  **/
- //INPUT ROUTES
-//Uaer authentication Input based routes
-/*
-//registration routes
-Route::get('/register-email', function () {
-    return view('ripple.register');
-})->name('ripple_register');
-Route::post('/register-email', [RegisterRipplerController::class,'create']);
-
-//verify account
-Route::get('verify-rippler-account/{rippler_id}',[RegisterRipplerController::class,'verifyAccount']);
-
-//login routes
-Route::get('/login', function () {
-  return view('ripple.login');
-})->name('ripple_login');
-//didn't want ro create anothe controller for logik functionality so....
-Route::post('/login', [RegisterRipplerController::class,'login']);
-
-
-//neutral page/landing page
-Route::get('/',function(){
-  return view('ripple.welcome');
-});
-*/
-/*
-use Illuminate\Support\Facades\Hash;
-$hashedPassword = Hash::make("", ['dontHash' => true]);
-echo "hashed password = ".$hashedPassword;
-*/
-Route::get('/ripplerLogin', function (){
-  if(Auth::guard('rippler')->once([
-    'rippler_email' => 'posterman@gmail.com',
-    'password' => "",
-    ])){
-      return response('LoggedIn');
-    }else{
-      echo "no";
-}});
-
-//Ripple creation Input based routes
- Route::get('/form', function (){
-   return view('Ripple/testform2');
- });
+ //INPUT
  //this sends a ripple(message) to the backend
  Route::post('/send-ripple',[RippleController::class,'create']);
  
- //OUTPUT ROUTES 
- //to get a ripple along with it related non quoted ripple replies
- Route::get('/get-related-ripples/{ripple_id}/{isQuote}',function(int $ripple_id,string $isQuote){
-   return new RippleResource(Ripple::findOrFail($ripple_id));
- });
+ //OUTPUT 
+ //to get all related nest level 0 ripples for a url
+ Route::get('get-ripples/{encrypted_url}',[RippleController::class,'getRipplesForUrl'])->middleware('auth');
  
- //to search for a ripple
+ //to get the immediate related ripples to a particular ripple,that are non quotes
+ /**
+  * The none quote ripples are normal replies to a ripple.
+  * You dont need to worry about quote ripples tho..it was put there just in case this was to become a social media backend
+  */
+ Route::get('get-related-ripples/{encrypted_url}/{ripple_id}/{is_quotes?}', [RippleController::class,'getRelatedRipples']);
+ 
+ //to search for a keyword in the ripple database
  Route::get('/search-keyword/{keyword}', function (string $keyword){
    $keywords = array();
    $keywords[] = $keyword;
-   $ripple = new Ripple;
    return Ripple::searchForRelatedRipples($keywords);
  });
 
-//ripple dashboard
-Route::get('/dashboard',function(){
-  return view('ripple.dashboard');
-});
-Route::post('add-url',[LogicController::class,'addURL']);
+
+
 
 
 //for registration
-Route::get('/', [RegisterController::class, 'show'])->name('ripple_register'); 
+Route::get('/', [RegisterController::class, 'show'])->name('register'); 
 Route::post('/register', [RegisterController::class, 'handle'])->name('register');//handles registration form
 
 
@@ -123,8 +80,17 @@ Route::post('/verify-email/request', [EmailVerificationController::class, 'reque
     
 
 //for signing in...
-Route::get('/login', [LoginController::class, 'show'])->name('ripple_login');
+Route::get('/login', [LoginController::class, 'show'])->name('login');
 Route::post('/login', [LoginController::class, 'handle'])->name('login');//handles login form
+
+//ripple dashboard after signing in
+Route::get('/dashboard',function(){
+  return view('Ripple.dashboard');
+})->middleware('auth')->name('dashboard');
+//ripple dashboard form listener
+Route::post('add-url',[LogicController::class,'addUrl']);
+Route::post('remove-url',[LogicController::class,'removeUrl']);
+Route::get('load-urls',[LogicController::class,'loadUrls']);
 
 //for logout
 Route::get('/logout', [LogoutController::class, 'show'])->name('logout');

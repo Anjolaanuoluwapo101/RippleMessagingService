@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Ripple;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ripple;
+use App\Models\Url;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Support\Str; 
+use App\Http\Resources\RippleResource;
 
 class RippleController extends Controller
 {
@@ -18,7 +20,7 @@ class RippleController extends Controller
   }
 
   /**
-  * Show the form for creating a new resource.
+  * This creates a new message of whatever nest level.
   */
   public function create(Request $request, Ripple $ripple) {
     //code to check that user(person making this request) is logged in ...
@@ -33,43 +35,41 @@ class RippleController extends Controller
           */
     //after basic validation
     //get some required attributes
-    //if ripple_reference_id is empty...then the user is creating a post..if not he's either replying  post or replying in general
+    
     if ($request->filled('ripple_reference_id')) {
-      $rippleIsAPost = false;//this block run if the ripple sent to the backend is a reply/comment/reply of reply /reply to a comment...as long as it's not a post(that's not under any other ripple)
-      $recipientMessage = Ripple::where('ripple_id', $request->input('ripple_reference_id'))->first(); //get the message being 
+      $recipientMessage = Ripple::where('ripple_id', request()->input('ripple_reference_id'))->first(); //get the message being 
       $rippleNestLevel = $recipientMessage->ripple_nest_level;
-      //update the tagged list
+      //update the tagged list...
       $arrayOfRipplersTagged = unserialize($recipientMessage->ripplers_tagged); //returns an array
-      $arrayOfRipplersTagged[] = $request->input('rippler_reference_id');
+      $arrayOfRipplersTagged[] = request()->input('rippler_reference_id');
       $jsonArrayOfRipplersTagged = serialize($arrayOfRipplersTagged);
     }
-    //this else block runs if the ripple sent to the backend is a post
-    else{
-      $rippleIsAPost = true;
-    }
+
     
     try {
       //upload files if present
       $pathToStoredFiles = $this->uploadFiles($request, new Ripple);
-      //upload message body
+      //upload message body if present
       $messageBodyFilePath= $this->storeMessageBody($request);
       //getting ready to save the ripple to database
       $newMessage = Ripple::make([
-        'rippler_id' => $request->input('rippler_id'),
-        'rippler_email' => $request->input('rippler_email'),
+        'rippler_id' => auth()->user()->rippler_id,
         'ripple_body' => $messageBodyFilePath,
+        'encrypted_url' => request()->route('encrypted_url'),
         ]);
-     //file path is saved 
+        
+     //saves file path if ripple contained media..
       if(!empty($pathToStoredFiles)){
         $newMessage->ripple_attachments = serialize($pathToStoredFiles);
       }
       //the next if block only runs for non-post ripples
-      else if(!empty($arrayOfRipplersTagged)){
-        $newMessage->rippler_reference_id = $request->input("rippler_reference_id");
-        $newMessage->ripple_reference_id = $request->input("ripple_reference_id");
+      if(!empty($arrayOfRipplersTagged)){
+        $newMessage->rippler_reference_id = request()->input("rippler_reference_id");
+        $newMessage->ripple_reference_id = request()->input("ripple_reference_id");
         $newMessage->ripplers_tagged = $jsonArrayOfRipplersTagged;
         $newMessage->ripple_nest_level = $rippleNestLevel + 1;
       }
+      
       $newMessage->save(); //persist the ripple in database
       
     }catch(Exception $e) {
@@ -77,7 +77,7 @@ class RippleController extends Controller
     }
   }
   
-  // This method stores files
+  // This method helps process&store the files attached to a ripple
   public function uploadFiles(Request $request, Ripple $ripple):array {
     //a variable that stores all uploaded files
     $pathToStoredFiles = [];
@@ -112,7 +112,7 @@ class RippleController extends Controller
     return $pathToStoredFiles;
   }
 
-  //store MessageBody
+  //This method helps process&store the message body (text) of the ripple
   public function storeMessageBody(Request $request) {
     //laravel storage function not working so I'm using the normo PHP function
     try {
@@ -126,13 +126,18 @@ class RippleController extends Controller
     }
   }
   
-  //this loads a ripple along with it 
-  public function loadRipple
+  //get nest level 0 ripples..like the comment on a fb post
+  public function getRipplesForUrl(){
+    $url = Url::where('encrypted_url','=',request()->route('encrypted_url'))->first();
+    return $url->getRipplesAssociatedToPost();
+  }
   /**
-  * Show the form for editing the specified resource.
+  * gets any other nest level n+1 ripples related to a particular ripple of nest level 1
   */
-  public function edit(Ripple $ripple) {
-    //
+  public function getRelatedRipples() {
+    //return new RippleResource(Ripple::where('ripple_id','=',request()->route('ripple_id')));
+    return new RippleResource(Ripple::findOrfail(request()->route('ripple_id')));
+    //return Ripple::find(request()->route('ripple_id'));
   }
 
   /**

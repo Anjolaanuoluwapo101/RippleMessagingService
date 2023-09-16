@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\LazyCollection;
+use App\Models\User;
 
 class Ripple extends Model
 {
@@ -13,13 +14,18 @@ class Ripple extends Model
   use HasUuids; //identify the UUID id column as tr primary key
   protected $table = 'ripples';
   protected $primaryKey = 'ripple_id';
-  
+  public $incrementing = false;
+  //protected $keyType = 'string';
+
   protected $fillable = [
     'ripple_reference_id',
+    'rippler_reference_id',
     'ripple_body',
     'rippler_id',
-    'rippler_email',
+    'ripplers_tagged',
     'ripple_attachments',
+    'ripple_nest_level',
+    'encrypted_url',
   ];
 
   //convert some attribute's data type
@@ -30,16 +36,7 @@ class Ripple extends Model
 
   //define some default values for the following attributes
   protected $attributes = [
-    'ripple_likes_count' => 0,
-    'ripple_ripples_count' => 0,
-    'ripple_nest_level' => 0,
-    'rippler_name' => '',
-    'rippler_email' => '',
-    'ripple_body' => '',
-    'rippler_reference_id' => null,
-    'ripple_reference_id' => null,
-    'ripple_attachments' => 'a:0:{}',
-    'ripplers_tagged' => 'a:0:{}',
+
   ];
 
   //supported mime types
@@ -59,77 +56,62 @@ class Ripple extends Model
     "png",
     "webp",
   ];
-  
-  protected static function pageSorter(){
-    $perPage = 1; // Number of records per page
-    $currentPage = request()->input('page', 1); // Get the current page from the request
-    // Calculate the offset based on the current page
-    $offset = ($currentPage - 1) * $perPage;
-    return [
-      'offset' => $offset,
-      'perPage' => $perPage
-      ];
-  }
-  //establish a eloquent relationship within the same table between the ripple_reference_id and ripple_id column
 
   //relationship that gets non quote related ripples.. basically replies to a post
   public function relatedNonQuotedRipples() {
-    return $this->hasMany(Ripple::class, 'ripple_reference_id', 'ripple_id')->where('isQuote', '!=', 1)
-      ->cursor()
-      ->skip(Ripple::pageSorter()['offset'])
-      ->take(Ripple::pageSorter()['perPage']);
+    return $this->hasMany(Ripple::class, 'ripple_reference_id', 'ripple_id')->where('encrypted_url', '=', request()->route('encrypted_url'))->where('isQuote', '!=', 1)
+    ->simplePaginate(1);
+
   }
 
   public static function searchForRelatedRipples(array $keywords) {
-    $perPage = 1; // Number of records per page
-    $currentPage = request()->input('page', 1); // Get the current page from the request
-    // Calculate the offset based on the current page
-    $offset = ($currentPage - 1) * $perPage;
     // Create a cursor loaded query for the initial query
-    $lazyRipples=  Ripple::where(function ($query) use ($keywords) {
-        foreach ($keywords as $value) {
-          $query->orWhere('ripple_body', 'like', "%$value%")
-          ->orWhere('rippler_name', 'like', "%$value%");
-        }
-      })
-      ->orderBy('created_at', 'desc')
-      ->cursor()
-      ->skip(Ripple::pageSorter()['offset'])
-      ->take(Ripple::pageSorter()['perPage']);
-    // Initialize the result as an empty array
+    $lazyRipples = Ripple::where(function ($query) use ($keywords) {
+      foreach ($keywords as $value) {
+        $query->orWhere('ripple_body', 'like', "%$value%")
+        ->orWhere('rippler_name', 'like', "%$value%");
+      }
+    })
+    ->orderBy('created_at', 'desc')
+    ->simplePaginate(1);
+
+    $lazyRipplesData = $lazyRipples->items();
     $result = [];
 
     // Iterate through the lazy collection and load each item
-    $lazyRipples->each(function ($ripple) use (&$result) {
+    foreach ($lazyRipplesData as $ripple) {
+      //check if the ripple is a quote
       if ($ripple->isQuote == 1) {
+        //fetch some extra details
+        $ripplerThatMadeTheRippleDetails = User::select('name', 'email')->where('rippler_id', '=', $ripple->rippler_id)->first();
+        $ripple = array_merge($ripplerThatMadeTheRippleDetails->toArray(), $ripple->toArray());
         // Fetch the quoted records based on ripple_reference_id
-        $quotedRipple = Ripple::where('ripple_id', $ripple->ripple_reference_id)->first();
+        $quotedRipple = Ripple::where('ripple_id', $ripple['ripple_reference_id'])->first();
 
         // Add both the quoted record and the initial record to the result
         if ($quotedRipple) {
-          $result[] = [
+          $result['data'][] = [
             "ripple" => $ripple,
             "quotedRipple" => $quotedRipple
           ];
         }
-        //$result[] = $ripple;
       } else {
-        $result[] = [
+        //fetch som extra details
+        $ripplerThatMadeTheRippleDetails = User::select('name', 'email')->where('rippler_id', '=', $ripple->rippler_id)->first();
+        $ripple = array_merge($ripplerThatMadeTheRippleDetails->toArray(), $ripple->toArray());
+        $result['data'][] = [
           "ripple" => $ripple,
           "quotedRipple" => null
         ];
       }
-    });
-    //add the next_page_url and prev_page_url 
-    /*$result["links"] = [
-      "prev_page_url" => $paginator->prevPageUrl(),
-      "next_page_url" => $paginator->nextPageUrl()
-      ];*/
+    }
+
+    //add the next_page_url and prev_page_url
+    $result["links"] = [
+      "prev_page_url" => $lazyRipples->previousPageUrl(),
+      "next_page_url" => $lazyRipples->nextPageUrl()
+    ];
     // Now, $result contains the filtered and ordered ripple records
     return $result;
   }
-
-  //relationship that gets quoted
-
-
 }

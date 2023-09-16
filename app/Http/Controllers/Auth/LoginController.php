@@ -20,7 +20,8 @@ class LoginController extends Controller
     ], request()->has('remember')); //checks the db for a row that has the following
 
     if ($success) {
-      return response('You have successfully logged in');
+      return view('Ripple.dashboard');
+      //return response('You have successfully logged in');
       //return redirect()->to(RouteServiceProvider::HOME);
     } else {
       return back()->withErrors([

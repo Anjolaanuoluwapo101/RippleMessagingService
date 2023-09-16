@@ -20,27 +20,12 @@ class RegisterController extends Controller
   }
 
   public function handle(Request $request) {
-    /*request()->validate([
-      'name' => ['required', 'string', 'max:255'],
-      'email' => ['required', 'email', 'max:255'],
-      'password' => ['required', 'string', 'min:8', 'confirmed']
-    ]);*/
     $validator = Validator::make($request->all(), [
       'name' => 'required|string|max:255',
       'email' => 'required|email|max:255',
       'password' => 'required|string|min:8|confirmed',
     ]);
     if ($validator->fails()) {
-      /*
-      $t = fopen('data.txt','w');
-      fwrite($t,serialize($validator->errors()->getMessages()));
-      fclose($t);
-      */
-      //$errors = $validator->errors()->getMessages();
-      //return redirect('/')->withErrors($validator)->withInput();
-      //session()->put('old',$request->all());
-      //session($validator->errors()->getMessages());
-      //$request->session()->put('key', 'value');
       return redirect()->back()->withErrors($validator->errors()->getMessages())->withInput();
     }
 
@@ -52,13 +37,8 @@ class RegisterController extends Controller
     ]);
 
 
-    event(new Registered($user));
-    /*
-    return back()->withErrors([
-      'confirm_password'=>'Password doesn\'t match',
-      ]);*/
-    //Auth::login($user);
-    return response('Your account have been created,please check your email for verification link')->header('Content-Type', 'text/plain');
-    //return redirect()->to(RouteServiceProvider::HOME);
+    //event(new Registered($user));
+    Auth::login($user); //authenticate the non verified account first
+    return redirect()->route('verification.notice');
   }
 }
