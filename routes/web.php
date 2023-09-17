@@ -31,7 +31,7 @@ use App\Models\Ripple;
  **/
  //INPUT
  //this sends a ripple(message) to the backend
- Route::post('/send-ripple',[RippleController::class,'create']);
+ Route::post('/send-ripple/{encrypted_url}',[RippleController::class,'create']);
  
  //OUTPUT 
  //to get all related nest level 0 ripples for a url
@@ -52,11 +52,18 @@ use App\Models\Ripple;
  });
 
 
+//quick test route
+Route::get('/form', function(){
+  return view('testform');
+});
 
-
+//welcome page for guests
+Route::get('/', function (){
+  return view('Ripple.welcome');
+});
 
 //for registration
-Route::get('/', [RegisterController::class, 'show'])->name('register'); 
+Route::get('/register', [RegisterController::class, 'show'])->name('register'); 
 Route::post('/register', [RegisterController::class, 'handle'])->name('register');//handles registration form
 
 
@@ -91,6 +98,7 @@ Route::get('/dashboard',function(){
 Route::post('add-url',[LogicController::class,'addUrl']);
 Route::post('remove-url',[LogicController::class,'removeUrl']);
 Route::get('load-urls',[LogicController::class,'loadUrls']);
+Route::post('add-host',[LogicController::class,'addHost']); //required to use api feature
 
 //for logout
 Route::get('/logout', [LogoutController::class, 'show'])->name('logout');

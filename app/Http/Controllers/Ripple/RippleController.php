@@ -25,18 +25,17 @@ class RippleController extends Controller
   public function create(Request $request, Ripple $ripple) {
     //code to check that user(person making this request) is logged in ...
     //validation
-    /*
+        
         $validated = $request->validate([
-          'sender_name' => 'string',//same as rippler_name/user's name
-          'sender_id' => 'integer',//same as rippler_id..the user sending the message
-          'recipient_message_id' => 'integer',//same as ripple_reference_id(if it's empty..then the user is creating a new post)
-          'message_body' => 'required|max:255',//the rippler_body
+          'ripple_reference_id' => 'string',//(if it's empty..then the user is creating a new post)
+          'rippler_reference_id' => 'string',//(if it's empty..then the user is creating a new post)
+          'ripple_body' => 'max:150',//the rippler_body
           ]);
-          */
+          
     //after basic validation
-    //get some required attributes
-    
+    //check if it's a nested ripple(message) that's..a reply to an older message
     if ($request->filled('ripple_reference_id')) {
+      //if it's...we will need to get some data from the older message
       $recipientMessage = Ripple::where('ripple_id', request()->input('ripple_reference_id'))->first(); //get the message being 
       $rippleNestLevel = $recipientMessage->ripple_nest_level;
       //update the tagged list...
@@ -71,6 +70,7 @@ class RippleController extends Controller
       }
       
       $newMessage->save(); //persist the ripple in database
+      return "saved";
       
     }catch(Exception $e) {
       return "Something Went Wrong".$e->getMessage();
@@ -126,18 +126,17 @@ class RippleController extends Controller
     }
   }
   
-  //get nest level 0 ripples..like the comment on a fb post
+  //get nest level 0 ripples..e.g the comment on a fb post
   public function getRipplesForUrl(){
     $url = Url::where('encrypted_url','=',request()->route('encrypted_url'))->first();
     return $url->getRipplesAssociatedToPost();
   }
+  
   /**
-  * gets any other nest level n+1 ripples related to a particular ripple of nest level 1
+  * gets any other nest level n+1 ripples related to a particular ripple of nest level n
   */
   public function getRelatedRipples() {
-    //return new RippleResource(Ripple::where('ripple_id','=',request()->route('ripple_id')));
     return new RippleResource(Ripple::findOrfail(request()->route('ripple_id')));
-    //return Ripple::find(request()->route('ripple_id'));
   }
 
   /**

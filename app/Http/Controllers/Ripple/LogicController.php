@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Ripple;
 
 use App\Models\Url;
+use App\Models\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -54,4 +55,21 @@ class LogicController extends Controller
   }
 
   public function removeUrl() {}
+  
+  public function addHost(){
+    $ripplerDetails = User::findOrfail(auth()->user()->rippler_id);
+    //$registeredHttpHosts = unserialize($ripplerDetails->http_hosts);
+    //return $registeredHttpHosts;
+    //$registeredHttpHosts[] = request('http_host');
+    if(!empty(request('http_host'))){
+      $registeredHttpHosts = unserialize($ripplerDetails->http_hosts);
+      $updatedRegisteredHttpHosts[] = Hash::make(request('http_host'));
+      $ripplerDetails->http_hosts = serialize($updatedRegisteredHttpHosts);
+      $ripplerDetails->save();
+      request()->session()->flash('added_host',true);
+      return Redirect::away(url('/dashboard#host_form'));
+    }else{
+      return "not saved";
+    }
+  }
 }

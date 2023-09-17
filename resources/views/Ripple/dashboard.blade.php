@@ -47,6 +47,9 @@ if (!auth()->check()) {
       <a href="#" class="w3-bar-item w3-button w3-padding-large">Link 4</a>
     </div>
   </div>
+  
+  <!--shalaye portion -->
+  
 
   <!-- Header -->
   <header class="w3-container w3-red w3-center" style="padding:128px 16px">
@@ -63,10 +66,10 @@ if (!auth()->check()) {
     <div class="w3-content">
       <div class="w3-twothird">
         <h1>Register URL for Ripple Service</h1>
-        <form action="/add-url" class="w3-container" method="post">
+        <form action="/add-url" class="w3-container w3-card w3-padding-32" method="post">
           @csrf
           <label class="w3-text">URL</label>
-          <input class="w3-input w3-border" type="text" name="url" placeholder="E.g 'www.example.com/my-post' " value="{{old('url')}}">
+          <input class="w3-input w3-border" type="text" name="url" placeholder="E.g 'www.example.com/path/to/my-post' " value="{{old('url')}}">
           <br>
           @error('url')
           <span class="w3-text-tiny w3-text-red">* {{$message}}</span>
@@ -96,10 +99,9 @@ if (!auth()->check()) {
   </div>
 
   <!-- Second Grid -->
-  <div class="w3-row-padding w3-light-grey w3-padding-64 w3-container">
+  <div class="w3-row-padding w3-light w3-padding-64 w3-container">
     <div class="w3-content">
       <div class="w3-third w3-center">
-        <i class="fa fa-coffee w3-padding-64 w3-text-red w3-margin-right"></i>
       </div>
       <table class="w3-table-all w3-small w3-hoverable" id="table_of_urls">
         <thead>
@@ -111,6 +113,29 @@ if (!auth()->check()) {
       </table>
     </div>
   </div>
+  
+  <!-- third grid -->
+  <a id="host_form"> </a>
+  <div class="w3-row-padding w3-light w3-padding-64 w3-container">
+    <div class="w3-content">
+      <div class="w3-third w3-center">
+      </div>
+        <h4>Register Host(Domain) name making the API request</h4>
+       <form action="/add-host" method="post" class="w3-container w3-card w3-padding-32">
+          @csrf
+          <label class="w3-text-tiny" ><b>Host(Domain) Name Of Website/Web Application</b></label>
+          <input class="w3-input w3-border" name="http_host" type="text" placeholder="'www.domainName.com' only">
+          @if (request()->session()->has('added_host'))
+          <div class="w3-panel w3-round-xlarge w3-padding-64">
+            Host(Domain) Name has been added
+          </div>
+          @endif
+          <br>
+          <button class="w3-btn w3-blue w3-right">Submit</button>
+        </form>
+    </div>
+  </div>
+  
 
   <div class="w3-container w3-black w3-center w3-opacity w3-padding-64">
     <h1 class="w3-margin w3-xlarge">Quote of the day: live life</h1>

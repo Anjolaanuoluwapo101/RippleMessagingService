@@ -44,7 +44,7 @@ return new Class extends Migration
     */
       
     $table->foreign('rippler_id')
-      ->references('ripple_id')
+      ->references('rippler_id')
       ->on('users')
       ->onDelete('cascade') // Cascade on delete
       ->onUpdate('cascade'); // Cascade on update
