@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Ripple;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Url;
+use App\Models\Ripple;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -14,7 +15,7 @@ use App\Http\Controllers\Ripple\RippleController;
 class ApiController extends Controller
 {
   public function __construct() {
-    $this->middleware(function (Request $request, $next) {
+    /*$this->middleware(function (Request $request, $next) {
       //the admin rippler is the owner of the site making the api call
       //we need to verify that the admin rippler has already registered his foreign domnain name on our service before allowing him access
       $adminRippler = User::findOrfail(request()->route('admin_id'));
@@ -29,7 +30,8 @@ class ApiController extends Controller
         "message" => "This host has not been registered,please inform admin to register this host name in Ripple Dashboard",
         "host_name" => request()->getHost(),
       ]);
-    });
+    });*/
+    $this->middleware('auth:sanctum', ['except' => ['login', 'register']]);
   }
 
   public function create(Request $request) {
@@ -60,7 +62,7 @@ class ApiController extends Controller
     }
   }
 
-  public function addRipple(RippleController $controller) {
+  public function sendRipple(RippleController $controller) {
     return $controller->create(new Request, new Ripple);
   }
 
@@ -82,12 +84,16 @@ class ApiController extends Controller
     if($url){
       return response()->json([
         "status" => "success",
-        "message" => "url successful created"
+        "message" => "url successful added and encrypted_url(code) generated for it"
       ]);
     }
   }
+  
   public function getEncryptedUrl(){
-    
+    $encrypted_url = Url::select('encrypted_url')->where('url','=',request('url'))->first();
+    return response()->json([
+      'encrypted_url' => $encrypted_url,
+      ]);
   }
   
 }

@@ -2,7 +2,9 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Ripple\ApiController;
+use App\Http\Controllers\Ripple\ApiController;//api portion of Ripple service
+use App\Http\Controllers\Api\AuthController;//for sanctum
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -19,12 +21,19 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 */
 
+Route::controller(AuthController::class)->group(function () {
+    Route::post('login', 'login');
+    Route::post('register', 'register');
+    Route::post('logout', 'logout');
+});
+
 Route::prefix('')->group(function () {
   /**
    * admin_id here is the id of the owner of the site making an api request to this service
    */
-    Route::get('add-rippler/{admin_id}',[ApiController::class,'create']);
-    Route::get('add-url/{admin_id}/{rippler_id}',[ApiController::class,'addUrl']);
-    Route::post('send-ripple/{admin_id}/{rippler_id}',[ApiController::class,'addRipple']);
+    Route::get('add-rippler',[ApiController::class,'create']);
+    Route::get('add-url/{rippler_id}',[ApiController::class,'addUrl']);
+    Route::get('get-encrypted-url',[ApiController::class,'getEncryptedUrl']);
+    Route::get('send-ripple/{encrypted_url}',[ApiController::class,'sendRipple']);
 });
 ?>

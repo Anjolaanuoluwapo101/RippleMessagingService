@@ -52,7 +52,8 @@ class RippleController extends Controller
       $messageBodyFilePath= $this->storeMessageBody($request);
       //getting ready to save the ripple to database
       $newMessage = Ripple::make([
-        'rippler_id' => auth()->user()->rippler_id,
+        //'rippler_id' => auth()->user()->rippler_id,
+        'rippler_id' => request('rippler_id'),
         'ripple_body' => $messageBodyFilePath,
         'encrypted_url' => request()->route('encrypted_url'),
         ]);
