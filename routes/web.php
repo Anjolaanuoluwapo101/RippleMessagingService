@@ -30,8 +30,8 @@ use App\Models\Ripple;
  * 
  **/
  //INPUT
- //this sends a ripple(message) to the backend
- Route::post('/send-ripple/{encrypted_url}',[RippleController::class,'create']);
+ //this sends a ripple(message) to the backend..exempted from csrf check.
+ Route::post('send-ripple/{encrypted_url}',[RippleController::class,'create']);
  
  //OUTPUT 
  //to get all related nest level 0 ripples for a url
@@ -42,7 +42,7 @@ use App\Models\Ripple;
   * The none quote ripples are normal replies to a ripple.
   * You dont need to worry about quote ripples tho..it was put there just in case this was to become a social media backend
   */
- Route::get('get-related-ripples/{encrypted_url}/{ripple_id}/{is_quotes?}', [RippleController::class,'getRelatedRipples']);
+ Route::get('get-related-ripples/{encrypted_url}/{ripple_id}', [RippleController::class,'getRelatedRipples']);
  
  //to search for a keyword in the ripple database
  Route::get('/search-keyword/{keyword}', function (string $keyword){
@@ -59,7 +59,7 @@ Route::get('/form', function(){
 
 //welcome page for guests
 Route::get('/', function (){
-  return view('Ripple.welcome');
+  return view('Ripple.docs');
 });
 
 //for registration

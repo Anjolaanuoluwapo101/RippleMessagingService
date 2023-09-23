@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Ripple;
 use App\Models\Url;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str; 
+use Illuminate\Support\Str;
 use App\Http\Resources\RippleResource;
 
 class RippleController extends Controller
@@ -25,18 +25,18 @@ class RippleController extends Controller
   public function create(Request $request, Ripple $ripple) {
     //code to check that user(person making this request) is logged in ...
     //validation
-        
-        $validated = $request->validate([
-          'ripple_reference_id' => 'string',//(if it's empty..then the user is creating a new post)
-          'rippler_reference_id' => 'string',//(if it's empty..then the user is creating a new post)
-          'ripple_body' => 'max:150',//the rippler_body
-          ]);
-          
+
+    $validated = $request->validate([
+      'ripple_reference_id' => 'string', //(if it's empty..then the user is creating a new post)
+      'rippler_reference_id' => 'string', //(if it's empty..then the user is creating a new post)
+      'ripple_body' => 'max:150', //the rippler_body
+    ]);
+
     //after basic validation
     //check if it's a nested ripple(message) that's..a reply to an older message
     if ($request->filled('ripple_reference_id')) {
       //if it's...we will need to get some data from the older message
-      $recipientMessage = Ripple::where('ripple_id', request()->input('ripple_reference_id'))->first(); //get the message being 
+      $recipientMessage = Ripple::where('ripple_id', request()->input('ripple_reference_id'))->first(); //get the message being
       $rippleNestLevel = $recipientMessage->ripple_nest_level;
       //update the tagged list...
       $arrayOfRipplersTagged = unserialize($recipientMessage->ripplers_tagged); //returns an array
@@ -44,40 +44,46 @@ class RippleController extends Controller
       $jsonArrayOfRipplersTagged = serialize($arrayOfRipplersTagged);
     }
 
-    
-    try {
-      //upload files if present
-      $pathToStoredFiles = $this->uploadFiles($request, new Ripple);
-      //upload message body if present
-      $messageBodyFilePath= $this->storeMessageBody($request);
-      //getting ready to save the ripple to database
-      $newMessage = Ripple::make([
-        //'rippler_id' => auth()->user()->rippler_id,
-        'rippler_id' => request('rippler_id'),
-        'ripple_body' => $messageBodyFilePath,
-        'encrypted_url' => request()->route('encrypted_url'),
-        ]);
-        
-     //saves file path if ripple contained media..
-      if(!empty($pathToStoredFiles)){
-        $newMessage->ripple_attachments = serialize($pathToStoredFiles);
-      }
-      //the next if block only runs for non-post ripples
-      if(!empty($arrayOfRipplersTagged)){
-        $newMessage->rippler_reference_id = request()->input("rippler_reference_id");
-        $newMessage->ripple_reference_id = request()->input("ripple_reference_id");
-        $newMessage->ripplers_tagged = $jsonArrayOfRipplersTagged;
-        $newMessage->ripple_nest_level = $rippleNestLevel + 1;
-      }
-      
-      $newMessage->save(); //persist the ripple in database
-      return "saved";
-      
-    }catch(Exception $e) {
-      return "Something Went Wrong".$e->getMessage();
+
+
+    //upload files if present
+    $pathToStoredFiles = $this->uploadFiles($request, new Ripple);
+    //upload message body if present
+    $messageBodyFilePath = $this->storeMessageBody($request);
+    //getting ready to save the ripple to database
+    $newMessage = Ripple::make([
+      //'rippler_id' => auth()->user()->rippler_id,
+      //'rippler_id' => request('rippler_id'),
+      'ripple_body' => $messageBodyFilePath,
+      'encrypted_url' => request()->route('encrypted_url'),
+    ]);
+
+
+    if (!empty(request()->session()->get('rippler_id'))) {
+      //we a user logs in normally(not via api)..his rippler id is put in a session data
+      $newMessage->rippler_id = request()->session()->get('rippler_id');
+    } else {
+      $newMessage->rippler_id = request('rippler_id');
     }
+    //saves file path if ripple contained media..
+    if (!empty($pathToStoredFiles)) {
+      $newMessage->ripple_attachments = serialize($pathToStoredFiles);
+    }
+    //the next if block only runs for non-post ripples
+    if (!empty($arrayOfRipplersTagged)) {
+      $newMessage->rippler_reference_id = request()->input("rippler_reference_id");
+      $newMessage->ripple_reference_id = request()->input("ripple_reference_id");
+      $newMessage->ripplers_tagged = $jsonArrayOfRipplersTagged;
+      $newMessage->ripple_nest_level = $rippleNestLevel + 1;
+    }
+    
+    
+    $newMessage->save(); //persist the ripple in database
+    return "saved";
+
+
   }
-  
+
   // This method helps process&store the files attached to a ripple
   public function uploadFiles(Request $request, Ripple $ripple):array {
     //a variable that stores all uploaded files
@@ -126,13 +132,13 @@ class RippleController extends Controller
       return false;
     }
   }
-  
+
   //get nest level 0 ripples..e.g the comment on a fb post
-  public function getRipplesForUrl(){
-    $url = Url::where('encrypted_url','=',request()->route('encrypted_url'))->first();
+  public function getRipplesForUrl() {
+    $url = Url::where('encrypted_url', '=', request()->route('encrypted_url'))->first();
     return $url->getRipplesAssociatedToPost();
   }
-  
+
   /**
   * gets any other nest level n+1 ripples related to a particular ripple of nest level n
   */

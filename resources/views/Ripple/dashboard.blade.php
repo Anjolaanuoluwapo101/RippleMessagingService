@@ -1,7 +1,7 @@
 <?php
 //prevent unverified users from accessing
 if (!auth()->check()) {
-  abort(404);
+  return view('Ripple.docs');
 }
 ?>
 <!DOCTYPE html>
@@ -99,14 +99,17 @@ if (!auth()->check()) {
   </div>
 
   <!-- Second Grid -->
+  <a id="registered_urls"></a>
   <div class="w3-row-padding w3-light w3-padding-64 w3-container">
-    <div class="w3-content">
-      <div class="w3-third w3-center">
-      </div>
+    <div class="w3-responsive">
+      <h4>Your Registered Urls <span class="w3-text-red w3-text-red"> scroll to the left</span></h4>
       <table class="w3-table-all w3-small w3-hoverable" id="table_of_urls">
         <thead>
           <tr class="w3-light-grey">
-            <th> Your Registered Urls </th>
+            <th>Your Post(Content) URL</th>
+            <th>Retrieve Comments Link</th>
+            <th>Retrieve Replies to a Comment Link</th>
+            <th>Send Comment/Replies Link</th>
           </tr>
         </thead>
         <!-- JavaScript code will populate this portion....-->
@@ -118,10 +121,8 @@ if (!auth()->check()) {
   <a id="host_form"> </a>
   <div class="w3-row-padding w3-light w3-padding-64 w3-container">
     <div class="w3-content">
-      <div class="w3-third w3-center">
-      </div>
         <h4>Register Host(Domain) name making the API request</h4>
-       <form action="/add-host" method="post" class="w3-container w3-card w3-padding-32">
+        <form action="/add-host" method="post" class="w3-container w3-card w3-padding-32">
           @csrf
           <label class="w3-text-tiny" ><b>Host(Domain) Name Of Website/Web Application</b></label>
           <input class="w3-input w3-border" name="http_host" type="text" placeholder="'www.domainName.com' only">
@@ -132,6 +133,30 @@ if (!auth()->check()) {
           @endif
           <br>
           <button class="w3-btn w3-blue w3-right">Submit</button>
+        </form>
+    </div>
+  </div>
+  
+  <a id="sanctum_form"> </a>
+  <div class="w3-row-padding w3-light w3-padding-64 w3-container">
+    <div class="w3-content">
+        <h4>Request an API Token</h4>
+        <h6 class="w3-text-red"> Only required for API requests</h6>
+        <form action="/api/login" method="get" class="w3-container w3-card w3-padding-32">
+          @csrf
+          <label class="w3-text-tiny" ><b>Your Email(email used in registration)</b></label>
+          <input class="w3-input w3-border" name="email" type="email" placeholder="'anjolaakinsoyinu@gmail.com'">
+          <br>
+          <label class="w3-text-tiny" ><b>Password</b></label>
+          <input class="w3-input w3-border" name="password" type="password" placeholder="">
+          <br>
+          <button class="w3-btn w3-blue w3-right">Submit</button>
+          
+           @if (request()->session()->has('api_key'))
+          <div class="w3-responsive">
+            {{request()->session()->get('api_key')}}
+          </div>
+          @endif
         </form>
     </div>
   </div>
@@ -199,17 +224,29 @@ if (!auth()->check()) {
         // Get the table body element
         const tableBody = document.getElementById('table_of_urls');
         // Loop through the URLs and create a new row for each
+        
         urls.forEach((url) => {
-          // Create a new table row
           const newRow = document.createElement('tr');
-          // Create a table cell for the URL
-          const urlCell = document.createElement('td');
-          urlCell.textContent = url;
-          // Append the URL cell to the row
-          newRow.appendChild(urlCell);
+          const urlCell1 = document.createElement('td');
+          urlCell1.textContent = url.content_link;
+          
+          const urlCell2 = document.createElement('td');
+          urlCell2.textContent = url.get_comments_link;
+          
+          const urlCell3 = document.createElement('td');
+          urlCell3.textContent = url.get_replies_to_a_comment_link;
+          
+          const urlCell4 = document.createElement('td');
+          urlCell4.textContent = url.send_comment_or_reply_link;
+          
+          newRow.appendChild(urlCell1);
+          newRow.appendChild(urlCell2);
+          newRow.appendChild(urlCell3);
+          newRow.appendChild(urlCell4);
           // Append the new row to the table body
           tableBody.appendChild(newRow);
         });
+        
       } else {
         // Request encountered an error
         alert('Request error:', xhr.statusText);

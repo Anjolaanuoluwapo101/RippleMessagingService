@@ -20,9 +20,9 @@ class LoginController extends Controller
     ], request()->has('remember')); //checks the db for a row that has the following
 
     if ($success) {
+      //store some of the user data in a session
+      request()->session()->put('rippler_id',auth()->user()->rippler_id);
       return view('Ripple.dashboard');
-      //return response('You have successfully logged in');
-      //return redirect()->to(RouteServiceProvider::HOME);
     } else {
       return back()->withErrors([
         'email' => 'The provided credentials do not match our records.',

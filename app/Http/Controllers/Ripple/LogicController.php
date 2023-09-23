@@ -47,8 +47,13 @@ class LogicController extends Controller
   public function loadUrls() {
     $keys = Url::select('*')->where('rippler_id', '=', auth()->user()->rippler_id)->cursor();
     foreach ($keys as $key) {
+      static $count = 0;
       static $processedUrls = array();
-      $processedUrls[] = url('get-ripples').'/'.$key->encrypted_url;
+      $processedUrls[$count]["content_link"] = $key->url;
+      $processedUrls[$count]["get_comments_link"] = url('get-ripples').'/'.$key->encrypted_url;
+      $processedUrls[$count]["get_replies_to_a_comment_link"] = url('get-related-ripples').'/'.$key->encrypted_url.'/replace_with_comment(ripple)_id';
+      $processedUrls[$count]["send_comment_or_reply_link"] = url('send-ripple').'/'.$key->encrypted_url;
+      $count++;
     }
     //return auth()->user()->rippler_id;
     return response()->json($processedUrls);
@@ -58,9 +63,6 @@ class LogicController extends Controller
   
   public function addHost(){
     $ripplerDetails = User::findOrfail(auth()->user()->rippler_id);
-    //$registeredHttpHosts = unserialize($ripplerDetails->http_hosts);
-    //return $registeredHttpHosts;
-    //$registeredHttpHosts[] = request('http_host');
     if(!empty(request('http_host'))){
       $registeredHttpHosts = unserialize($ripplerDetails->http_hosts);
       $updatedRegisteredHttpHosts[] = Hash::make(request('http_host'));

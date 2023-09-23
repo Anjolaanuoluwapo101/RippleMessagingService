@@ -12,12 +12,13 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-      '/register',//facing 419 Expired issue and I'm tired lol
+     /* '/register',//facing 419 Expired issue and I'm tired lol
       '/login',
       '/logout',
       '/confirm-password',
       '/verify-email',
       '/verify-email/request',
-      'verify-email/{id}/{hash}'
+      'verify-email/{id}/{hash}'*/
+      'send-ripple/{encrypted_url}',
     ];
 }

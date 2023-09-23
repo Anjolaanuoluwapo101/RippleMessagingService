@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redirect;
 
 class AuthController extends Controller
 {
@@ -24,20 +25,31 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
-            return response()->json([
+            /*$key = [
+                    'token' => $user->createToken('ApiToken')->plainTextToken,
+                    'type' => 'bearer',
+                ];*/
+            $token =$user->createToken('ApiToken')->plainTextToken; 
+            $key = "Generated Token: $token \n Type: Bearer";
+            request()->session()->flash('api_key', $key);
+            return Redirect::away(url('/dashboard#sanctum_form'));
+            /*return response()->json([
                 'user' => $user,
                 'authorization' => [
                     'token' => $user->createToken('ApiToken')->plainTextToken,
                     'type' => 'bearer',
                 ]
-            ]);
+            ]);*/
         }
-
-        return response()->json([
+        $key = "Invalid Credentials";
+        request()->session()->flash('api_key', $key);
+        return Redirect::away(url('/dashboard#sanctum_form'));
+        /*return response()->json([
             'message' => 'Invalid credentials',
-        ], 401);
+        ], 401);*/
     }
-
+  
+  //not needed for this particular app because there's already a way to create an account from the RippleController 
     public function register(Request $request)
     {
         $request->validate([
@@ -57,7 +69,8 @@ class AuthController extends Controller
             'user' => $user
         ]);
     }
-
+  
+    //invalidate the api token
     public function logout()
     {
         Auth::user()->tokens()->delete();

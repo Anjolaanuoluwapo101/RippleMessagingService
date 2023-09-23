@@ -59,7 +59,7 @@ class Ripple extends Model
 
   //relationship that gets non quote related ripples.. basically replies to a post
   public function relatedNonQuotedRipples() {
-    return $this->hasMany(Ripple::class, 'ripple_reference_id', 'ripple_id')->where('encrypted_url', '=', request()->route('encrypted_url'))->where('isQuote', '!=', 1)
+  return $this->hasMany(Ripple::class, 'ripple_reference_id', 'ripple_id')->where('encrypted_url', '=', request()->route('encrypted_url'))->where('isQuote', '!=', 1)
     ->simplePaginate(1);
 
   }

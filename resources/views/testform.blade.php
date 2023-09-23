@@ -5,7 +5,7 @@
 </head>
 <body>
     <form action="/send-ripple/l9fEQFZ83ie3Ar" method="post">
-      @csrf
+      @csrf 
         <label for="ripple_reference_id">Recipient Message ID:</label>
         <input type="number" id="ripple_reference_id" name="ripple_reference_id" value="12337288292" placeholder="Enter something...">
         <br>
