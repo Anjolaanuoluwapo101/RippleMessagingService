@@ -122,13 +122,18 @@ if (!auth()->check()) {
   <div class="w3-row-padding w3-light w3-padding-64 w3-container">
     <div class="w3-content">
         <h4>Register Host(Domain) name making the API request</h4>
-        <form action="/add-host" method="post" class="w3-container w3-card w3-padding-32">
+        <form action="{{url('/add-host')}}" method="post" class="w3-container w3-card w3-padding-32">
           @csrf
           <label class="w3-text-tiny" ><b>Host(Domain) Name Of Website/Web Application</b></label>
-          <input class="w3-input w3-border" name="http_host" type="text" placeholder="'www.domainName.com' only">
+          <input class="w3-input w3-border" name="http_host" type="text" placeholder="'www.domainName.com' only" value="{{old('http_host')}}">
           @if (request()->session()->has('added_host'))
           <div class="w3-panel w3-round-xlarge w3-padding-64">
             Host(Domain) Name has been added
+          </div>
+          @endif
+          @if (request()->session()->has('failed_to_add_host'))
+          <div class="w3-panel w3-red w3-round-xlarge w3-padding-64">
+            Failed to add host
           </div>
           @endif
           <br>
@@ -142,7 +147,7 @@ if (!auth()->check()) {
     <div class="w3-content">
         <h4>Request an API Token</h4>
         <h6 class="w3-text-red"> Only required for API requests</h6>
-        <form action="/api/login" method="get" class="w3-container w3-card w3-padding-32">
+        <form action="{{url('/api/login')}}" method="get" class="w3-container w3-card w3-padding-32">
           @csrf
           <label class="w3-text-tiny" ><b>Your Email(email used in registration)</b></label>
           <input class="w3-input w3-border" name="email" type="email" placeholder="'anjolaakinsoyinu@gmail.com'">
@@ -154,6 +159,7 @@ if (!auth()->check()) {
           
            @if (request()->session()->has('api_key'))
           <div class="w3-responsive">
+            Your API Key: <br>
             {{request()->session()->get('api_key')}}
           </div>
           @endif
@@ -213,7 +219,8 @@ if (!auth()->check()) {
     // Create a new XMLHttpRequest object
     var xhr = new XMLHttpRequest();
     // Get User registered URLs
-    var url = '/load-urls';
+    var url = "{{url('/load-urls')}}";
+    //var url = "http://localhost:8000/public/index.php/load-urls";
     // Configure the request
     xhr.open('GET', url, true);
     // Set up an event handler for when the request is completed

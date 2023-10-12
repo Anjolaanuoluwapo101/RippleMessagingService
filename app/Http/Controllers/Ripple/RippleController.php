@@ -25,15 +25,14 @@ class RippleController extends Controller
   public function create(Request $request, Ripple $ripple) {
     //code to check that user(person making this request) is logged in ...
     //validation
-
-    $validated = $request->validate([
+    $validator = Validator::make($request->all(),[
       'ripple_reference_id' => 'string', //(if it's empty..then the user is creating a new post)
       'rippler_reference_id' => 'string', //(if it's empty..then the user is creating a new post)
       'ripple_body' => 'max:150', //the rippler_body
     ]);
 
     //after basic validation
-    //check if it's a nested ripple(message) that's..a reply to an older message
+    //check if the message being sent is supposed to be  nested  that's..a reply to an older message
     if ($request->filled('ripple_reference_id')) {
       //if it's...we will need to get some data from the older message
       $recipientMessage = Ripple::where('ripple_id', request()->input('ripple_reference_id'))->first(); //get the message being
@@ -59,11 +58,17 @@ class RippleController extends Controller
     ]);
 
 
-    if (!empty(request()->session()->get('rippler_id'))) {
-      //we a user logs in normally(not via api)..his rippler id is put in a session data
+    //At the frontend,a website owner has nool need to send a ripple_id to the backend.
+    //This is because,before a user can comment on a blog post that utilizes Ripple services,he/she as to login his own account on the same browser
+    //He/she rippler_id is stored as a cookie in the frontend
+    /*if (!empty(request()->session()->get('rippler_id'))) {
       $newMessage->rippler_id = request()->session()->get('rippler_id');
-    } else {
-      $newMessage->rippler_id = request('rippler_id');
+    } else{
+      $newMessage->rippler_id = request()->input('rippler_id');
+    }*/
+    $newMessage->rippler_id = auth()->user()->rippler_id;//checks if the user sending a message has been authenticated on his browser
+    if(empty($newMessage->rippler_id)){
+     return response()->json(["status"=>"failed","message"=>"please inform your user to login to the ripple service first","url"=> url('login')]);
     }
     //saves file path if ripple contained media..
     if (!empty($pathToStoredFiles)) {
@@ -77,10 +82,11 @@ class RippleController extends Controller
       $newMessage->ripple_nest_level = $rippleNestLevel + 1;
     }
     
-    
-    $newMessage->save(); //persist the ripple in database
-    return "saved";
-
+    if($newMessage->save()){ //persist the ripple in database
+     return response()->json(["status"=>"success","message"=>"message saved"]);
+    }else{
+     return response()->json(["status"=>"failure","message"=>"message not saved"]);
+    }
 
   }
 
@@ -132,8 +138,9 @@ class RippleController extends Controller
       return false;
     }
   }
-
-  //get nest level 0 ripples..e.g the comment on a fb post
+  /**
+  *get nest level 0 ripples(messages)..e.g the comment on a fb post
+  **/
   public function getRipplesForUrl() {
     $url = Url::where('encrypted_url', '=', request()->route('encrypted_url'))->first();
     return $url->getRipplesAssociatedToPost();
@@ -141,21 +148,21 @@ class RippleController extends Controller
 
   /**
   * gets any other nest level n+1 ripples related to a particular ripple of nest level n
-  */
+  **/
   public function getRelatedRipples() {
     return new RippleResource(Ripple::findOrfail(request()->route('ripple_id')));
   }
 
   /**
   * Update the specified resource in storage.
-  */
+  **/
   public function update(Request $request, Rippler $rippler) {
     //
   }
 
   /**
   * Remove the specified resource from storage.
-  */
+  **/
   public function destroy(Rippler $rippler) {
     //
   }

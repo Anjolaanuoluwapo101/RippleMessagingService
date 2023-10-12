@@ -22,7 +22,7 @@ class LoginController extends Controller
     if ($success) {
       //store some of the user data in a session
       request()->session()->put('rippler_id',auth()->user()->rippler_id);
-      return view('Ripple.dashboard');
+      return view('ripple.dashboard');
     } else {
       return back()->withErrors([
         'email' => 'The provided credentials do not match our records.',

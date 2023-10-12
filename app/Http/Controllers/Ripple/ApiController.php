@@ -15,28 +15,13 @@ use App\Http\Controllers\Ripple\RippleController;
 class ApiController extends Controller
 {
   public function __construct() {
-    /*$this->middleware(function (Request $request, $next) {
-      //the admin rippler is the owner of the site making the api call
-      //we need to verify that the admin rippler has already registered his foreign domnain name on our service before allowing him access
-      $adminRippler = User::findOrfail(request()->route('admin_id'));
-      $httpHosts = unserialize($adminRippler->http_hosts);
-      foreach ($httpHosts as $host) {
-        if (Hash::check(request()->getHost(), $host)) {
-          return $next($request);
-        }
-      }
-      return response()->json([
-        "status" => "error",
-        "message" => "This host has not been registered,please inform admin to register this host name in Ripple Dashboard",
-        "host_name" => request()->getHost(),
-      ]);
-    });*/
     $this->middleware('auth:sanctum', ['except' => ['login', 'register']]);
   }
 
   public function create(Request $request) {
     $validator = Validator::make($request->all(),
       [
+        'rippler_id' => 'required|integer',
         'name' => 'required|string|max:255',
         'email' => 'required|email|max:255',
         //'password' => 'required|string|min:8|confirmed',
@@ -47,25 +32,26 @@ class ApiController extends Controller
     }
 
     $newUser = User::create([
-      'rippler_id' => request('rippler_id'),
-      'name' => request('name'),
-      'email' => request('email'),
-      "password" => "0",
+      'rippler_id' => request()->input('rippler_id'),
+      'name' => request()->input('name'),
+      'email' => request()->input('email'),
+      "password" => "",//since this account is an indirect one being created by an api admin(who is just a user taking advantage of the api functionality)
       'email_verified_at' => now(),
     ]);
 
     if ($newUser) {
       return response()->json([
         "status" => "success",
-        "message" => "Account successful created"
+        "message" => "Account successfully created"
       ]);
     }
   }
 
   public function sendRipple(RippleController $controller) {
     return $controller->create(new Request, new Ripple);
-  }
-
+  }  
+  
+  //this allows the api admin add create an encrypted url(code) for a post 
   public function addUrl(Request $request) {
     $validator = Validator::make($request->all(), [
       'url' => 'required|max:255|unique:urls',
@@ -89,8 +75,9 @@ class ApiController extends Controller
     }
   }
   
+  //get encrypted_url(code) for a  post/ content
   public function getEncryptedUrl(){
-    $encrypted_url = Url::select('encrypted_url')->where('url','=',request('url'))->first();
+    $encrypted_url = Url::select('encrypted_url')->where('url','=',request()->input('url'))->first();
     return response()->json([
       'encrypted_url' => $encrypted_url,
       ]);

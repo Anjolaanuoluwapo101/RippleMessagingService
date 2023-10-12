@@ -24,81 +24,89 @@ use App\Models\Ripple;
 | routes are loaded by the RouteServiceProvider and all of them will
 | be assigned to the "web" middleware group. Make something great!
 |
+**/
 
-/**
- *  BEGINNING of Ripple Routes 
- * 
- **/
- //INPUT
+//These routes take care of managing messages (sending messages/ripples(comment/reply) , displaying them etc)
+ Route::controller(RippleController::class)->group(function () {
  //this sends a ripple(message) to the backend..exempted from csrf check.
- Route::post('send-ripple/{encrypted_url}',[RippleController::class,'create']);
- 
- //OUTPUT 
- //to get all related nest level 0 ripples for a url
- Route::get('get-ripples/{encrypted_url}',[RippleController::class,'getRipplesForUrl'])->middleware('auth');
- 
- //to get the immediate related ripples to a particular ripple,that are non quotes
+ Route::post('send-ripple/{encrypted_url}','create');
+ //to get all related nest level 0 ripples(messages) for a url(basically a reply to a comment,a reply to a reply etc)
+ Route::get('get-ripples/{encrypted_url}','getRipplesForUrl')->middleware('auth');
  /**
+  * ___To get the immediate related ripples to a particular ripple,that are non quotes___(ignore non quotes )
   * The none quote ripples are normal replies to a ripple.
   * You dont need to worry about quote ripples tho..it was put there just in case this was to become a social media backend
-  */
- Route::get('get-related-ripples/{encrypted_url}/{ripple_id}', [RippleController::class,'getRelatedRipples']);
+  **/
+ Route::get('get-related-ripples/{encrypted_url}/{ripple_id}','getRelatedRipples');
+ });
  
- //to search for a keyword in the ripple database
+ //To search for a keyword in the ripple database...not in use 
  Route::get('/search-keyword/{keyword}', function (string $keyword){
    $keywords = array();
    $keywords[] = $keyword;
    return Ripple::searchForRelatedRipples($keywords);
  });
-
-
-//quick test route
-Route::get('/form', function(){
-  return view('testform');
+ 
+ 
+ 
+//Ripple dashboard after signing in,this opens the dashboard that an authenticated user can use
+Route::get('/dashboard',function(){
+  return view('ripple.dashboard');
+})->middleware('auth')->name('dashboard');
+ 
+ /**
+  * LogicController class deals with request from a users dashboard
+  * 
+  **/
+Route::controller(LogicController::class)->group(function () {
+//registers a url to a post/or content from another site
+Route::post('add-url','addUrl');
+//removes a url to a particular post/or content
+Route::post('remove-url','removeUrl');
+//loads all the registered urls registered by a particular user(account)
+Route::get('load-urls','loadUrls');
+//get the encrypted url for a particular link(url of the post/content)
+Route::get('get-encrypted-url','getEncryptedURL');
+//Required for the api feature to work
+Route::post('add-host','addHost'); 
 });
 
-//welcome page for guests
+
+
+
+//Welcome page for users/guests
 Route::get('/', function (){
-  return view('Ripple.docs');
+  return view('ripple.docs'); //contains the docs that shows clients how to use this service also signing in/up functionality
 });
+
+Route::get('/test', function(){
+ //return view('test');
+ return http_host();
+});
+
 
 //for registration
 Route::get('/register', [RegisterController::class, 'show'])->name('register'); 
 Route::post('/register', [RegisterController::class, 'handle'])->name('register');//handles registration form
-
 
 //for email verification
 //displays page that allows user request for an email verification 
 Route::get('/verify-email', [EmailVerificationController::class, 'show'])
     ->middleware('auth')
     ->name('verification.notice'); // <-- don't change the route name
-
 //listens to the user,if he/she clicks the form and sends an email Validation link to the User's email
 Route::post('/verify-email/request', [EmailVerificationController::class, 'request'])
     ->middleware('auth')
     ->name('verification.request');
-    
  //helps verify the user email
  Route::get('/verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])
     ->middleware(['auth', 'signed']) // <-- don't remove "signed"
     ->name('verification.verify'); // <-- don't change the route name
- 
-    
-    
 
 //for signing in...
 Route::get('/login', [LoginController::class, 'show'])->name('login');
 Route::post('/login', [LoginController::class, 'handle'])->name('login');//handles login form
 
-//ripple dashboard after signing in
-Route::get('/dashboard',function(){
-  return view('Ripple.dashboard');
-})->middleware('auth')->name('dashboard');
-//ripple dashboard form listener
-Route::post('add-url',[LogicController::class,'addUrl']);
-Route::post('remove-url',[LogicController::class,'removeUrl']);
-Route::get('load-urls',[LogicController::class,'loadUrls']);
-Route::post('add-host',[LogicController::class,'addHost']); //required to use api feature
 
 //for logout
 Route::get('/logout', [LogoutController::class, 'show'])->name('logout');
@@ -135,4 +143,4 @@ Route::get('/reset-password/{token}', function (string $token) {
 })->name('password.reset'); //you can add the guest middleware if you want authenticated users to be redirected somewhere else..this would prevent them from changing password tho except they log out
 
 //
- Route::post('/reset-password', [PasswordResetController::class,'change'])->name('password.update');// //you can add the guest middleware if you want authenticated users to be redirected somewhere else..this would prevent them from changing password tho except they log out
+Route::post('/reset-password', [PasswordResetController::class,'change'])->name('password.update');// //you can add the guest middleware if you want authenticated users to be redirected somewhere else..this would prevent them from changing password tho except they log out
