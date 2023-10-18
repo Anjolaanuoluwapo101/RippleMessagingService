@@ -49,8 +49,6 @@ class SampleMail extends Mailable
         public string $fromAddress, 
         public string $fromName, 
         public string $theSubject, 
-        //public string $theRipplerHashedName,
-        //public string $theRipplerEmail,
         public string $theMessage,
         public string $recipientName,
     )

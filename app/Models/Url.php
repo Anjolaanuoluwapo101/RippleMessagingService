@@ -23,6 +23,10 @@ class Url extends Model
       
     //define an eloquent relationship...between a url and the immediate nest level 0 ripples
     public function getRipplesAssociatedToPost() {
-      return $this->hasMany(Ripple::class,'encrypted_url','encrypted_url')->where('isQuote','=',0)->where('ripple_nest_level','=',0)->simplePaginate(1);
+      $data =  $this->hasMany(Ripple::class,'encrypted_url','encrypted_url')->where('isQuote','=',0)->where('ripple_nest_level','=',0)->simplePaginate(3);
+      foreach($data->items() as $message){
+       $message->ripple_body = storage_path($message->ripple_body);
+      }
+      return $data;
     }
 }

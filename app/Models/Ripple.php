@@ -65,7 +65,7 @@ class Ripple extends Model
   }
 
   public static function searchForRelatedRipples(array $keywords) {
-    // Create a cursor loaded query for the initial query
+    // Create a simple loaded query for the initial query
     $lazyRipples = Ripple::where(function ($query) use ($keywords) {
       foreach ($keywords as $value) {
         $query->orWhere('ripple_body', 'like', "%$value%")

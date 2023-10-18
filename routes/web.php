@@ -31,16 +31,17 @@ use App\Models\Ripple;
  //this sends a ripple(message) to the backend..exempted from csrf check.
  Route::post('send-ripple/{encrypted_url}','create');
  //to get all related nest level 0 ripples(messages) for a url(basically a reply to a comment,a reply to a reply etc)
- Route::get('get-ripples/{encrypted_url}','getRipplesForUrl')->middleware('auth');
+ Route::get('get-ripples/{encrypted_url}','getRipplesForUrl');
  /**
-  * ___To get the immediate related ripples to a particular ripple,that are non quotes___(ignore non quotes )
+  *To get the immediate related ripples to a particular ripple,that are non quotes___(ignore non quotes )
   * The none quote ripples are normal replies to a ripple.
   * You dont need to worry about quote ripples tho..it was put there just in case this was to become a social media backend
   **/
  Route::get('get-related-ripples/{encrypted_url}/{ripple_id}','getRelatedRipples');
  });
  
- //To search for a keyword in the ripple database...not in use 
+ //To search for a keyword in the ripple database...not in use
+// Not in use and not working
  Route::get('/search-keyword/{keyword}', function (string $keyword){
    $keywords = array();
    $keywords[] = $keyword;
@@ -80,8 +81,12 @@ Route::get('/', function (){
 });
 
 Route::get('/test', function(){
- //return view('test');
- return http_host();
+ return view('test');
+});
+
+use Illuminate\Support\Facades\Mail;
+Route::get('/send-mail', function(){
+ //Mail::to
 });
 
 

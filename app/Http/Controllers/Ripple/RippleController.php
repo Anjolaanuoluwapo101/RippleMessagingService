@@ -7,16 +7,18 @@ use App\Models\Ripple;
 use App\Models\Url;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\RippleResource;
 
 class RippleController extends Controller
 {
-
-  /**
-  * Display a listing of the resource.
-  */
-  public function index() {
-    //
+  //check that the encrypted_url is valid from the 
+  public function __construct() {
+   $encrypted_url = request()->route('encrypted_url');
+   $validURL = Url::where('encrypted_url','=',$encrypted_url)->first();
+   if(!$validURL->exists()){
+    die(response()->json(["status"=>"failed","message"=>"invalid encrypted_url"]));
+   }
   }
 
   /**
@@ -26,8 +28,8 @@ class RippleController extends Controller
     //code to check that user(person making this request) is logged in ...
     //validation
     $validator = Validator::make($request->all(),[
-      'ripple_reference_id' => 'string', //(if it's empty..then the user is creating a new post)
-      'rippler_reference_id' => 'string', //(if it's empty..then the user is creating a new post)
+      'ripple_reference_id' => 'text', //(if it's empty..then the user is creating a new post)
+      'rippler_reference_id' => 'text', //(if it's empty..then the user is creating a new post)
       'ripple_body' => 'max:150', //the rippler_body
     ]);
 
@@ -36,11 +38,17 @@ class RippleController extends Controller
     if ($request->filled('ripple_reference_id')) {
       //if it's...we will need to get some data from the older message
       $recipientMessage = Ripple::where('ripple_id', request()->input('ripple_reference_id'))->first(); //get the message being
+      
+      //get the nest level of the ripple(message) being replied
       $rippleNestLevel = $recipientMessage->ripple_nest_level;
-      //update the tagged list...
+      //update the tagged list...this list will contain all the people id to be replied
       $arrayOfRipplersTagged = unserialize($recipientMessage->ripplers_tagged); //returns an array
       $arrayOfRipplersTagged[] = request()->input('rippler_reference_id');
       $jsonArrayOfRipplersTagged = serialize($arrayOfRipplersTagged);
+      
+      //we update the number of replies to a ripple(message)
+      $recipientMessage->ripple_ripples_count += 1;
+      $recipientMessage->save();
     }
 
 
@@ -61,12 +69,13 @@ class RippleController extends Controller
     //At the frontend,a website owner has nool need to send a ripple_id to the backend.
     //This is because,before a user can comment on a blog post that utilizes Ripple services,he/she as to login his own account on the same browser
     //He/she rippler_id is stored as a cookie in the frontend
-    /*if (!empty(request()->session()->get('rippler_id'))) {
+    if (!empty(request()->session()->get('rippler_id'))) {
       $newMessage->rippler_id = request()->session()->get('rippler_id');
     } else{
       $newMessage->rippler_id = request()->input('rippler_id');
-    }*/
-    $newMessage->rippler_id = auth()->user()->rippler_id;//checks if the user sending a message has been authenticated on his browser
+    }
+    $newMessage->rippler_id = request()->input('rippler_id');
+    //$newMessage->rippler_id = auth()->user()->rippler_id;//checks if the user sending a message has been authenticated on his browser
     if(empty($newMessage->rippler_id)){
      return response()->json(["status"=>"failed","message"=>"please inform your user to login to the ripple service first","url"=> url('login')]);
     }
@@ -74,7 +83,7 @@ class RippleController extends Controller
     if (!empty($pathToStoredFiles)) {
       $newMessage->ripple_attachments = serialize($pathToStoredFiles);
     }
-    //the next if block only runs for non-post ripples
+    
     if (!empty($arrayOfRipplersTagged)) {
       $newMessage->rippler_reference_id = request()->input("rippler_reference_id");
       $newMessage->ripple_reference_id = request()->input("ripple_reference_id");
